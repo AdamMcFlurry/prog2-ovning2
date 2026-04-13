@@ -42,4 +42,9 @@ public class Recording {
   public String toString() {
     return String.format("{ %s | %s | %s | %d | %s }", artist, title, genre, year, type);
   }
+
+  @Override
+  public boolean equals(Object o){
+    return ((Recording) o).getTitle() == getTitle() && ((Recording) o).getArtist() == getArtist() && ((Recording) o).getYear() == getYear();
+  }
 }
