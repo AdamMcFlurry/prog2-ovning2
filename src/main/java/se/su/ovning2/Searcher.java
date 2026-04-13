@@ -1,13 +1,36 @@
 package se.su.ovning2;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap; 
 
 public class Searcher implements SearchOperations {
+  private Set<String> artists;
+  private Set<String> genres;
+
+  private Map<String, Recording> titleMap;
+  private Map<String, Set<Recording>> artistMap;
+  private Map<String, Set<Recording>> genreMap;
+  private TreeMap<Integer, Set<Recording>> yearMap;
 
   public Searcher(Collection<Recording> data) {
-
     Collection<Recording> recordings = data;
+
+    artists = new HashSet<>();
+    genres = new HashSet<>();
+
+    titleMap = new HashMap<>();
+    artistMap = new HashMap<>();
+    genreMap = new HashMap<>();
+    yearMap = new TreeMap();
+
+    for (Recording r : data) {
+      
+    }
   }
 
   @Override
