@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.Comparator;
 
 public class Searcher implements SearchOperations {
   private Set<String> artists;
@@ -29,26 +30,6 @@ public class Searcher implements SearchOperations {
     artistMap = new HashMap<>();
     genreMap = new HashMap<>();
     yearMap = new TreeMap();
-
-    for (Recording r : data) {
-
-      //Samla unika värden
-      artists.add(r.getArtist());
-      genres.add(r.getGenre());
-
-      //Title -> Recording
-      titleMap.put(r.getTitle(), r);
-
-      // Artist -> Set av recordings
-      artistMap.computeIfAbsent(r.getArtist(), k -> new HashSet<>()).add(r);
-
-      // Genre -> Set av recordings
-      genreMap.computeIfAbsent(r.getGenre(), k -> new HashSet<>()).add(r);
-
-      // År -> Set av recordings
-      yearMap.computeIfAbsent(r.getYear(), k -> new HashSet<>()).add(r);
-
-    }
   }
 
   @Override
@@ -105,6 +86,8 @@ public class Searcher implements SearchOperations {
       return Collections.emptySortedSet();
     }
     SortedSet<Recording> sorted = new TreeSet<>(Comparator.comparingInt(Recording::getYear));
+    sorted.addAll(set);
+    return Collections.unmodifiableSortedSet(sorted);
   }
 
   @Override
