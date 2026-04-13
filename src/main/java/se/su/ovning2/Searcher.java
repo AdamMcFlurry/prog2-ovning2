@@ -92,18 +92,47 @@ public class Searcher implements SearchOperations {
 
   @Override
   public Collection<Recording> getRecordingsByGenre(String genre) {
-    
+    Set<Recording> set = genreMap.get(genre);
+
+    if(set == null || set.isEmpty()) {
+      return Collections.emptySet();
+    }
+    return Collections.unmodifiableSet(set);
   }
 
   @Override
   public Collection<Recording> getRecordingsByGenreAndYear(String genre, int yearFrom, int yearTo) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getRecordingsByGenreAndYear'");
+    if (yearFrom > yearTo) {
+      return Collections.emptySet();
+    }
+    SortedMap<Integer, Set<Recording>> sub = yearMap.subMap(yearFrom, yearTo + 1);
+
+    if (sub.isEmpty()) {
+      return Collections.emptySet();
+    }
+    Set<Recording> result = new HashSet<>();
+
+    for (Set<Recording> set : sub.values()) {
+      for (Recording r : set) {
+        if (r.getGenre().equals(genre)) {
+          result.add(r);
+        }
+      }
+    }
+    return Collections.unmodifiableSet(result);
   }
 
   @Override
   public Collection<Recording> offerHasNewRecordings(Collection<Recording> offered) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'offerHasNewRecordings'");
+    if (offered = null || offered.isEmpty()) {
+      return Collections.emptySet();
+    }
+    Set<Recording> result = new HashSet<>();
+    for (Recording r : offered) {
+      if (!titleMap.containsKey(r.getTitle())){
+        result.add(r);
+      }
+    }
+    return Collections.unmodifiableSet(result);
   }
 }
