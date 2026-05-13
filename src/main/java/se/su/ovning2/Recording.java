@@ -1,9 +1,8 @@
 package se.su.ovning2;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
-public class Recording {
+public class Recording implements Comparable<Recording> {
   private final int year;
   private final String artist;
   private final String title;
@@ -45,6 +44,36 @@ public class Recording {
 
   @Override
   public boolean equals(Object o){
-    return ((Recording) o).getTitle() == getTitle() && ((Recording) o).getArtist() == getArtist() && ((Recording) o).getYear() == getYear();
+    if (o instanceof Recording r) {
+      return (r.title.equals(title) && r.artist.equals(artist) && r.year == year);
+    }
+    return false;
+  }
+
+  //Alla attrbut i equals() måste också finnas i hash
+  @Override
+  public int hashCode() {
+    return Objects.hash(year, artist, title);
+  }
+
+  //EJ KLAR
+  @Override
+  public int compareTo(Recording r) {
+    if (year > r.year) {
+      return 1;
+    } else if (year < r.year){
+      return -1;
+    } else if (title.compareTo(r.title) > 0) {
+      return 1;
+    } else if (title.compareTo(r.title) < 0) {
+      return -1;
+    } else if (title.compareTo(r.artist) > 0) {
+      return 1;
+    } else if (title.compareTo(r.artist) < 0) {
+      return -1;
+    } else {
+      return 0;
+    }
+    //.compareTo() för resten
   }
 }
