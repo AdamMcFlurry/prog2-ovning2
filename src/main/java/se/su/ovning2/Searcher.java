@@ -1,16 +1,21 @@
 package se.su.ovning2;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Comparator;
 
 public class Searcher implements SearchOperations {
-  private static class RecordingYearComparator implements Comparator<Recording> {
-    @Override
-    public int compare(Recording a, Recording b) {
-      return a.getYear() - b.getYear();
-    }
-  }
-
-  private final static Comparator<Recording> RECORDING_BY_YEAR = new RecordingYearComparator();
+  private Set<String> artists;
+  private Set<String> genres;
+  private Set<Recording> allRecordings; 
 
   private final Map<String, Set<Recording>> genreToRecordings = new HashMap<>();
   private final Map<String, Set<Recording>> artistToRecordings = new HashMap<>();
@@ -20,31 +25,30 @@ public class Searcher implements SearchOperations {
   
 
   public Searcher(Collection<Recording> data) {
-    for (Recording r : data) {
-      Set<Recording> sameArtist = artistToRecordings.get(r.getArtist());
-      if (sameArtist == null) {
-        sameArtist = new HashSet<>();
-        artistToRecordings.put(r.getArtist(), sameArtist);
-      }
-      sameArtist.add(r);
-      titleToRecording.put(r.getTitle(), r);
-      allRecording.add(r);
-      
-      for (String genre : r.getGenre()) {
-        Set<Recording> sameGenre = genreToRecordings.get(genre);
-        if (sameGenre == null) {
-          sameGenre = new HashSet<>();
-          genreToRecordings.put(genre, sameGenre); 
-        }
-        sameGenre.add(r);
-      }
+    Collection<Recording> recordings = data;
 
-      Set<Recording> sameYear = yearToRecordings.get(r.getYear());
-      if (sameYear == null) {
-        sameYear = new HashSet<>();
-        yearToRecordings.put(r.getYear(), sameYear); 
+    artists = new HashSet<>();
+    genres = new HashSet<>();
+    allRecordings = new Hashset<>();
+
+    titleMap = new HashMap<>();
+    artistMap = new HashMap<>();
+    genreMap = new HashMap<>();
+    yearMap = new TreeMap();
+
+    for (Recording r : recordings) {
+      allRecordings.add(r);
+      artists.add(r.getArtist());
+      titleMap.put(r.getTitle(),r);
+      artistMap.computeIfAbsent(r.getArtist(), k -> new HashSet<>()).add(r);
+
+      for (String g : r.getGenre()) {
+        genres.add(g);
+        genreMap.computeIfAbsent(g, k -> new HashSet<>()).add(r);
       }
-      sameYear.add(r);
+    
+    yearMap.computeIfAbsent(r.getYear(), k -> new HashSet<>()).add(r);
+    
     }
   }
 
@@ -94,44 +98,54 @@ public class Searcher implements SearchOperations {
     if (sameArtist == null) {
       return Collections.emptySortedSet();
     }
-    
-    SortedSet<Recording> sortedRecording = new TreeSet<>(RECORDING_BY_YEAR);
-    // SortedSet<Recording> sortedRecording = new TreeSet<>(Comparator.comparing(Recording::getYear));
-    sortedRecording.addAll(sameArtist);
-
-    return Collections.unmodifiableSortedSet(sortedRecording);
+    SortedSet<Recording> sorted = new TreeSet<>(Comparator.comparingInt(Recording::getYear));
+    sorted.addAll(set);
+    return Collections.unmodifiableSortedSet(sorted);
   }
 
   @Override
   public Collection<Recording> getRecordingsByGenre(String genre) {
-    Set<Recording> sameGenre = genreToRecordings.get(genre);
-    if (sameGenre == null) {
+    Set<Recording> set = genreMap.get(genre);
+
+    if(set == null || set.isEmpty()) {
       return Collections.emptySet();
     }
-    return Collections.unmodifiableSet(sameGenre);
+    return Collections.unmodifiableSet(set);
   }
 
   @Override
   public Collection<Recording> getRecordingsByGenreAndYear(String genre, int yearFrom, int yearTo) {
-    Set<Recording> sameGenre = genreToRecordings.get(genre);
-    Set<Recording> betweenYear = new HashSet<>();
-    for (Recording r : sameGenre) {
-      int year = r.getYear();
-      if (year <= yearTo && year >= yearFrom) {
-        betweenYear.add(r);
+    if (yearFrom > yearTo) {
+      return Collections.emptySet();
+    }
+    SortedMap<Integer, Set<Recording>> sub = yearMap.subMap(yearFrom, yearTo + 1);
+
+    if (sub.isEmpty()) {
+      return Collections.emptySet();
+    }
+    Set<Recording> result = new HashSet<>();
+
+    for (Set<Recording> set : sub.values()) {
+      for (Recording r : set) {
+        if (r.getGenre().contains(genre)) {
+          result.add(r);
+        }
       }
     }
-    return Collections.unmodifiableSet(betweenYear);
+    return Collections.unmodifiableSet(result);
   }
 
   @Override
   public Collection<Recording> offerHasNewRecordings(Collection<Recording> offered) {
-    Set<Recording> missing = new HashSet<>();
+    if (offered == null || offered.isEmpty()) {
+      return Collections.emptySet();
+    }
+    Set<Recording> result = new HashSet<>();
     for (Recording r : offered) {
-      if (!allRecording.contains(r)) {
-        missing.add(r);
+      if (!allRecordings.contains(r)){
+        result.add(r);
       }
     }
-    return Collections.unmodifiableSet(missing);
+    return Collections.unmodifiableSet(result);
   }
 }
