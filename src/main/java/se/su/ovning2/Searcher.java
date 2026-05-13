@@ -9,11 +9,13 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Comparator;
 
 public class Searcher implements SearchOperations {
   private Set<String> artists;
   private Set<String> genres;
+  private Set<Recording> allRecordings; 
 
   private Map<String, Recording> titleMap;
   private Map<String, Set<Recording>> artistMap;
@@ -25,11 +27,27 @@ public class Searcher implements SearchOperations {
 
     artists = new HashSet<>();
     genres = new HashSet<>();
+    allRecordings = new Hashset<>();
 
     titleMap = new HashMap<>();
     artistMap = new HashMap<>();
     genreMap = new HashMap<>();
     yearMap = new TreeMap();
+
+    for (Recording r : recordings) {
+      allRecordings.add(r);
+      artists.add(r.getArtist());
+      titleMap.put(r.getTitle(),r);
+      artistMap.computeIfAbsent(r.getArtist(), k -> new HashSet<>()).add(r);
+
+      for (String g : r.getGenre()) {
+        genres.add(g);
+        genreMap.computeIfAbsent(g, k -> new HashSet<>()).add(r);
+      }
+    
+    yearMap.computeIfAbsent(r.getYear(), k -> new HashSet<>()).add(r);
+    
+    }
   }
 
   @Override
@@ -114,7 +132,7 @@ public class Searcher implements SearchOperations {
 
     for (Set<Recording> set : sub.values()) {
       for (Recording r : set) {
-        if (r.getGenre().equals(genre)) {
+        if (r.getGenre().contains(genre)) {
           result.add(r);
         }
       }
@@ -124,12 +142,12 @@ public class Searcher implements SearchOperations {
 
   @Override
   public Collection<Recording> offerHasNewRecordings(Collection<Recording> offered) {
-    if (offered = null || offered.isEmpty()) {
+    if (offered == null || offered.isEmpty()) {
       return Collections.emptySet();
     }
     Set<Recording> result = new HashSet<>();
     for (Recording r : offered) {
-      if (!titleMap.containsKey(r.getTitle())){
+      if (!allRecordings.contains(r)){
         result.add(r);
       }
     }
